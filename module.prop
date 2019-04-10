@@ -1,6 +1,6 @@
-id=template
-name=Template Module
-version=v1
-versionCode=1
-author=topjohnwu
-description=A short description
+id=lg-rctd-disabler
+name=LG rctd Disabler
+version=v1.0
+versionCoe=1
+author=xymopen
+description=Disable RCT(Rooting Check Tool) service on LG phones

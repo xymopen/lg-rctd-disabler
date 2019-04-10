@@ -11,7 +11,7 @@
 # Set to 1 if you would like to fully control
 # and customize the installation process, skip
 # all default installation steps
-#SKIPUNZIP=
+SKIPUNZIP=1
 
 ##########################################################################################
 # Replace list
@@ -87,3 +87,22 @@ REPLACE_EXAMPLE="
 ##########################################################################################
 
 # You can add more code to assist your custom script
+
+SED_PROG="\
+s/# LG RCT(Rooting Check Tool)//; \
+s/service rctd \/system_ext\/bin\/rctd//; \
+s/    class late_start//; \
+s/    user root//; \
+s/    group root//; \
+s/    seclabel u:r:rctd:s0//; \
+"
+
+mkdir -p "$MODPATH/system/system_ext/etc/init/" "$MODPATH/system/system_ext/bin/"
+
+sed -e "$SED_PROG" "/system_ext/etc/init/init.lge.system_ext.services.rc" > "$MODPATH/system/system_ext/etc/init/init.lge.system_ext.services.rc"
+set_perm "$MODPATH/system/system_ext/etc/init/init.lge.system_ext.services.rc" root root 644 "u:object_r:system_file:s0"
+
+touch "$MODPATH/system/system_ext/bin/rctd"
+set_perm "$MODPATH/system/system_ext/bin/rctd" root shell 755 "u:object_r:rctd_exec:s0"
+
+rm -rf "/mnt/product/persist-lg/rct"
