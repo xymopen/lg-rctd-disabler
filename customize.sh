@@ -99,10 +99,13 @@ s/    seclabel u:r:rctd:s0//; \
 
 mkdir -p "$MODPATH/system/system_ext/etc/init/" "$MODPATH/system/system_ext/bin/"
 
+ui_print "- Removing rctd service"
 sed -e "$SED_PROG" "/system_ext/etc/init/init.lge.system_ext.services.rc" > "$MODPATH/system/system_ext/etc/init/init.lge.system_ext.services.rc"
 set_perm "$MODPATH/system/system_ext/etc/init/init.lge.system_ext.services.rc" root root 644 "u:object_r:system_file:s0"
 
+ui_print "- Removing rctd"
 touch "$MODPATH/system/system_ext/bin/rctd"
 set_perm "$MODPATH/system/system_ext/bin/rctd" root shell 755 "u:object_r:rctd_exec:s0"
 
+ui_print "- Removing rctd persist files"
 rm -rf "/mnt/product/persist-lg/rct"
