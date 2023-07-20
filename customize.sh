@@ -97,6 +97,16 @@ s/    group root//; \
 s/    seclabel u:r:rctd:s0//; \
 "
 
+ui_print "- Checking /system_ext/etc/init/init.lge.system_ext.services.rc"
+if ! [ -f "/system_ext/etc/init/init.lge.system_ext.services.rc" ]; then
+  abort "Couldn't find /system_ext/etc/init/init.lge.system_ext.services.rc"
+fi
+
+ui_print "- Checking /system_ext/bin/rctd"
+if ! [ -x "/system_ext/bin/rctd" ]; then
+  abort "Couldn't find /system_ext/bin/rctd"
+fi
+
 mkdir -p "$MODPATH/system/system_ext/etc/init/" "$MODPATH/system/system_ext/bin/"
 
 ui_print "- Removing rctd service"
