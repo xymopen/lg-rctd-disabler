@@ -97,6 +97,9 @@ s/    group root//; \
 s/    seclabel u:r:rctd:s0//; \
 "
 
+ui_print "- Extracting module files"
+unzip -o "$ZIPFILE" module.prop -d "$MODPATH" >&2
+
 ui_print "- Checking /system_ext/etc/init/init.lge.system_ext.services.rc"
 if ! [ -f "/system_ext/etc/init/init.lge.system_ext.services.rc" ]; then
   abort "Couldn't find /system_ext/etc/init/init.lge.system_ext.services.rc"
