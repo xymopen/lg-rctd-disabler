@@ -111,11 +111,11 @@ mkdir -p "$MODPATH/system/system_ext/etc/init/" "$MODPATH/system/system_ext/bin/
 
 ui_print "- Removing rctd service"
 sed -e "$SED_PROG" "/system_ext/etc/init/init.lge.system_ext.services.rc" > "$MODPATH/system/system_ext/etc/init/init.lge.system_ext.services.rc"
-set_perm "$MODPATH/system/system_ext/etc/init/init.lge.system_ext.services.rc" root root 644 "u:object_r:system_file:s0"
+set_perm "$MODPATH/system/system_ext/etc/init/init.lge.system_ext.services.rc" $(stat -c '%U %G %a' "/system_ext/etc/init/init.lge.system_ext.services.rc") "$(ls -Z "/system_ext/etc/init/init.lge.system_ext.services.rc" | cut -f1 -d ' ')"
 
 ui_print "- Removing rctd"
 touch "$MODPATH/system/system_ext/bin/rctd"
-set_perm "$MODPATH/system/system_ext/bin/rctd" root shell 755 "u:object_r:rctd_exec:s0"
+set_perm "$MODPATH/system/system_ext/bin/rctd" $(stat -c '%U %G %a' "/system_ext/bin/rctd") "$(ls -Z "/system_ext/bin/rctd" | cut -f1 -d ' ')"
 
 ui_print "- Removing rctd persist files"
 rm -rf "/mnt/product/persist-lg/rct"
