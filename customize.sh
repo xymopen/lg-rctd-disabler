@@ -88,37 +88,70 @@ REPLACE_EXAMPLE="
 
 # You can add more code to assist your custom script
 
+MAGISKROOT="/data/adb/magisk"
+MAGISKBOOT="$MAGISKROOT/magiskboot"
+
 SED_PROG="\
 s/# LG RCT(Rooting Check Tool)//; \
-s/service rctd \/system_ext\/bin\/rctd//; \
+s/service rctd \/sbin\/rctd//; \
 s/    class late_start//; \
 s/    user root//; \
 s/    group root//; \
 s/    seclabel u:r:rctd:s0//; \
 "
 
+CPIO_PROG="\
+rm sbin/rctd\
+"
+
+BOOTIMAGE="/dev/block/by-name/boot"
+
 ui_print "- Extracting module files"
-unzip -o "$ZIPFILE" module.prop -d "$MODPATH" >&2
+unzip -o "$ZIPFILE" module.prop uninstall.sh -d "$MODPATH" >&2
 
-ui_print "- Checking /system_ext/etc/init/init.lge.system_ext.services.rc"
-if ! [ -f "/system_ext/etc/init/init.lge.system_ext.services.rc" ]; then
-  abort "Couldn't find /system_ext/etc/init/init.lge.system_ext.services.rc"
+ui_print "- Checking /system/etc/init/init.lge.system.services.rc"
+if ! [ -f "/system/etc/init/init.lge.system.services.rc" ]; then
+  abort "Couldn't find /system/etc/init/init.lge.system.services.rc"
 fi
 
-ui_print "- Checking /system_ext/bin/rctd"
-if ! [ -x "/system_ext/bin/rctd" ]; then
-  abort "Couldn't find /system_ext/bin/rctd"
+ui_print "- Checking /sbin/rctd"
+if ! [ -x "/sbin/rctd" ]; then
+  abort "Couldn't find /sbin/rctd"
 fi
 
-mkdir -p "$MODPATH/system/system_ext/etc/init/" "$MODPATH/system/system_ext/bin/"
+mkdir -p "$MODPATH/system/etc/init/"
 
 ui_print "- Removing rctd service"
-sed -e "$SED_PROG" "/system_ext/etc/init/init.lge.system_ext.services.rc" > "$MODPATH/system/system_ext/etc/init/init.lge.system_ext.services.rc"
-set_perm "$MODPATH/system/system_ext/etc/init/init.lge.system_ext.services.rc" $(stat -c '%U %G %a' "/system_ext/etc/init/init.lge.system_ext.services.rc") "$(ls -Z "/system_ext/etc/init/init.lge.system_ext.services.rc" | cut -f1 -d ' ')"
+sed -e "$SED_PROG" "/system/etc/init/init.lge.system.services.rc" > "$MODPATH/system/etc/init/init.lge.system.services.rc"
+set_perm "$MODPATH/system/etc/init/init.lge.system.services.rc" $(stat -c '%U %G %a' "/system/etc/init/init.lge.system.services.rc") "$(ls -Z "/system/etc/init/init.lge.system.services.rc" | cut -f1 -d ' ')"
 
-ui_print "- Removing rctd"
-touch "$MODPATH/system/system_ext/bin/rctd"
-set_perm "$MODPATH/system/system_ext/bin/rctd" $(stat -c '%U %G %a' "/system_ext/bin/rctd") "$(ls -Z "/system_ext/bin/rctd" | cut -f1 -d ' ')"
+ui_print "- Backing up rctd"
+cp -a "/sbin/rctd" "$MODPATH/rctd.bak"
+
+ui_print "- Unpacking boot image"
+cat "$BOOTIMAGE" > "boot.img"
+if ! "$MAGISKBOOT" unpack "boot.img"; then
+    rm -f "boot.img"
+    abort "! Unable to unpack boot image"
+fi
+
+ui_print "- Removing rctd from ramdisk"
+if ! "$MAGISKBOOT" cpio "ramdisk.cpio" "$CPIO_PROG"; then
+    rm -f "kernel" "kernel_dtb" "ramdisk.cpio" "boot.img"
+    abort "! Unable to remove rctd"
+fi
+
+ui_print "- Repacking boot image"
+if ! "$MAGISKBOOT" repack "boot.img" "new-boot.img"; then
+    rm -f "kernel" "kernel_dtb" "ramdisk.cpio" "boot.img"
+    abort "! Unable to repack boot image"
+fi
+
+ui_print "- Flashing new boot image"
+cat "new-boot.img" > "$BOOTIMAGE"
+
+rm -f "kernel" "kernel_dtb" "ramdisk.cpio" "boot.img" "new-boot.img"
 
 ui_print "- Removing rctd persist files"
+rm -rf "/mnt/vendor/persist-lg/rct"
 rm -rf "/mnt/product/persist-lg/rct"
